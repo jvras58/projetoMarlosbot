@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from sqlalchemy.orm import Session
 
+from app.config.config import get_settings
 from app.database.session import engine
 from app.funcoes.alertas import (
     alerta_checkpoint,
@@ -15,6 +16,7 @@ from app.funcoes.comandos import (
 )
 from app.funcoes.dados import dados, envia_planilha
 from app.models.bot_models import Config_bot
+from app.models.user_model import Users
 
 
 class ConectorDiscord(discord.Client):
@@ -60,6 +62,18 @@ class ConectorDiscord(discord.Client):
         self.verificar_checkpoints_nao_enviados = (
             verificar_checkpoints_nao_enviados
         )
+    # TODO: add configurações para adicionar os membros do servidor no banco de dados
+    def add_user(self, user_id, username):
+        user = self.session.query(Users).filter_by(user_id=user_id).first()
+
+        if not user:
+            user = Users()
+            self.session.add(user)
+
+        user.user_id = user_id
+        user.username = username
+
+        self.session.commit()
 
     def save(self):
         config = self.session.query(Config_bot).first()
@@ -80,6 +94,15 @@ class ConectorDiscord(discord.Client):
 
         self.session.commit()
         self.session.close()
+    
+    # TODO: add configurações para adicionar os membros do servidor no banco de dados
+    async def add_all_users(self, guild_id):
+        guild = await self.fetch_guild(guild_id)
+
+        for member in guild.members:
+            self.add_user(member.id, member.name)
+
+        self.session.commit()
 
     async def on_ready(self):
         """
@@ -90,6 +113,8 @@ class ConectorDiscord(discord.Client):
             await self.tree.sync()
             self.synced = True
         print(f'{self.user} conectado ao Discord!')
+        # TODO: add configurações para adicionar os membros do servidor no banco de dados
+        await self.add_all_users(get_settings().YOUR_GUILD_ID)
 
         config = self.session.query(Config_bot).first()
         if config:

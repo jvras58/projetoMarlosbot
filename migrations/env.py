@@ -29,7 +29,7 @@ if config.config_file_name is not None:
 
 app_models = [
     'app.models.bot_models',
-
+    'app.models.user_model',
 ]
 
 for module in app_models:

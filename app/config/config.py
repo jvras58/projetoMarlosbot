@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     DISCORD_TOKEN: str
     DB_URL: str
     AUTHORIZATION_IDS: str
+    # TODO: add configurações para adicionar os membros do servidor no banco de dados
+    YOUR_GUILD_ID: str
 
     # Configurações de imagem de alguns comandos
     AVATAR_SIZE: tuple = (250, 250)
